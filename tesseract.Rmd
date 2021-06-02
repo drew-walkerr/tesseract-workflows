@@ -1,0 +1,73 @@
+---
+title: "tesseract"
+author: "Drew Walker"
+date: "6/2/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tesseract)
+library(tidyverse)
+library(lubridate)
+library(magick)
+```
+
+```{r, loadimage}
+eng <- tesseract("eng")
+text <- tesseract::ocr("http://jeroen.github.io/images/testocr.png", engine = eng)
+cat(text)
+```
+
+```{r, evaluation}
+results <- tesseract::ocr_data("http://jeroen.github.io/images/testocr.png", engine = eng)
+results
+```
+
+```{r, tesseractdownload-training}
+# Only need to do download once:
+tesseract_download("nld")
+
+(dutch <- tesseract("nld"))
+text <- ocr("https://jeroen.github.io/images/utrecht2.png", engine = dutch)
+cat(text)
+```
+
+```{r, fakecensus}
+
+```
+
+
+```{r, magick-processing}
+
+input <- image_read("https://jeroen.github.io/images/bowers.jpg")
+
+text <- input %>%
+  image_resize("2000x") %>%
+  image_convert(type = 'Grayscale') %>%
+  image_trim(fuzz = 40) %>%
+  image_write(format = 'png', density = '300x300') %>%
+  tesseract::ocr() 
+
+cat(text)
+```
+
+```{r, frompdffiles}
+pngfile <- pdftools::pdf_convert('https://jeroen.github.io/images/ocrscan.pdf', dpi = 600)
+```
+
+```{r, showpdftext}
+text <- tesseract::ocr(pngfile)
+cat(text)
+```
+
+```{r, practice}
+
+
+pngfile <- pdftools::pdf_convert("Proctor2011_Article_OutcomesForImplementationResea.pdf", dpi = 600)
+
+text <- tesseract::ocr(pngfile)
+cat(text)
+
+```
+
