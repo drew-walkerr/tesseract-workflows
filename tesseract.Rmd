@@ -40,7 +40,7 @@ cat(text)
 
 ```{r, magick-processing}
 
-input <- image_read("https://jeroen.github.io/images/bowers.jpg")
+input <- image_read("fakecensus.png")
 
 text <- input %>%
   image_resize("2000x") %>%
@@ -50,7 +50,67 @@ text <- input %>%
   tesseract::ocr() 
 
 cat(text)
+
+#need to add lines to this
+
+library(stringr)
+library(tm)
+
+dat <- map(text, function(x) {
+  tibble(text = unlist(str_split(x, pattern = " "))) %>%
+    rowid_to_column(var = "line")
+})
+
+tibble <- dat[[1]] 
+
+str(tibble_clean)
+
+tibble_clean$textdata
+
+tibble_clean <- tibble %>% 
+  rename(textdata = text) 
+
+corpus <- Corpus(VectorSource(tibble_clean$textdata))
+
+corpus = tm_map(corpus, PlainTextDocument)
+
+
+
+census_date <- corpus[[1]][[1]][6:7] 
+census_date_clean <- census_date %>% 
+  paste(collapse = " ")
+census_date_as_date <- mdy(census_date_clean)
+
+tibble_dated <- tibble_clean %>% 
+  mutate(date = census_date_as_date)
+
+filename <- paste("Census",census_date_as_date)
+# remove punctuation
+corpus = tm_map(corpus, removePunctuation)
+corpus[[1]][1]
+
+corptibble <- as_tibble(unlist(corpus$content))
+
+
+corptibble2 <-  gsub("([a-z])([A-Z])", "\\1 \\2",corptibble)
+
+corptibble3 <- as_tibble_col(corptibble2)
+
+
+new <- 
+corpus$content
+
+
+#Need to grab date from first line 
+#need to grab names from this and list them rowwise. 
+#Then mutate date column piping in value from date extraction
 ```
+
+```{r, census-evaluation}
+results <- tesseract::ocr_data("fakecensus.png", engine = "eng")
+results
+```
+
 
 ```{r, frompdffiles}
 pngfile <- pdftools::pdf_convert('https://jeroen.github.io/images/ocrscan.pdf', dpi = 600)
